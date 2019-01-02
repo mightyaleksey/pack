@@ -1,0 +1,24 @@
+{
+  "name": "@sullenor/pack",
+  "version": "1.0.0",
+  "main": "./webpack.config.js",
+  "bin": "./bin.js",
+  "files": [
+    "bin.js",
+    "package.json",
+    "readme.md",
+    "webpack.config.js",
+    "yarn.lock"
+  ],
+  "dependencies": {
+    "@babel/core": "^7.2.2",
+    "babel-loader": "^8.0.4",
+    "css-loader": "^2.1.0",
+    "mini-css-extract-plugin": "^0.5.0",
+    "minimist": "^1.2.0",
+    "postcss-loader": "^3.0.0",
+    "pug-loader": "^2.4.0",
+    "webpack": "^4.28.3",
+    "webpack-dev-server": "^3.1.14"
+  }
+}
