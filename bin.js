@@ -7,6 +7,7 @@ const USAGE = `
 
   Commands:
 
+    init            create default configs
     build           compile all files to dist/
     serve           start a development server
 
@@ -48,6 +49,7 @@ const SERVE_USAGE = `
   Options:
 
     -h, --help   print usage
+    -o, --open
     -p, --port
 `;
 
@@ -55,6 +57,7 @@ const minimist = require('minimist');
 const argv = minimist(process.argv.slice(2), {
   alias: {
     help: 'h',
+    open: 'o',
     port: 'p',
     production: 'p',
     version: 'v',
@@ -65,8 +68,68 @@ const argv = minimist(process.argv.slice(2), {
 });
 
 switch (argv._[0]) {
-// case 'init':
-//   break;
+case 'init': {
+  const chalk = require('chalk');
+  const fg = require('fast-glob');
+  const fs = require('fs');
+  const path = require('path');
+  const util = require('util');
+
+  const blankDir = path.resolve(__dirname, 'blank');
+  const rootDir = process.cwd();
+
+  const exists = util.promisify(fs.exists);
+  const mkdirp = util.promisify(require('mkdirp'));
+
+  function copy(src, dst) {
+    return exists(dst).then(dstExists => {
+      if (dstExists) return false;
+      return write(src, dst);
+    });
+  }
+
+  function write(src, dst) {
+    return new Promise((resolve, reject) => {
+      const ws = fs.createWriteStream(dst, 'utf8');
+
+      ws
+        .once('ready', () => fs.createReadStream(src, 'utf8').pipe(ws))
+        .once('close', () => resolve(true))
+        .once('error', err => {
+          if (err.code === 'ENOENT') return void resolve(
+            mkdirp(path.dirname(dst)).then(() => write(src, dst))
+          );
+
+          reject(err);
+        });
+    });
+  }
+
+  const stream = fg.stream('**/*', {
+    cwd: blankDir,
+    dot: true,
+    onlyFiles: true,
+    stats: false,
+  });
+
+  stream
+    .once('error', err => console.error(err.message))
+    .on('data', file => {
+      const dst = path.resolve(rootDir, file);
+      const src = path.resolve(blankDir, file);
+
+      copy(src, dst)
+        .then(copied => {
+          console.log(`- ${file} ${copied ? chalk.green('copied') : chalk.gray('skipped')}`);
+        })
+        .catch(err => {
+          console.error(err.message);
+        });
+    });
+
+  break;
+}
+
 case 'build': {
   if (argv.help) {
     console.log(BUILD_USAGE);
@@ -133,6 +196,7 @@ case 'serve': {
   }
 
   const Server = require('webpack-dev-server');
+  const chalk = require('chalk');
   const path = require('path');
   const webpack = require('webpack');
   const createConfig = require('./webpack.config');
@@ -146,6 +210,8 @@ case 'serve': {
 
   const wpConfig = createConfig(cfg);
 
+  if (argv.open) wpConfig.devServer.open = argv.open;
+
   if (module.parent) return void (module.exports = {
     args: argv,
     config: cfg,
@@ -153,10 +219,26 @@ case 'serve': {
   });
 
   const compiler = webpack(wpConfig);
-  const server = new Server(compiler, wpConfig.devServer);
+  const app = new Server(compiler, wpConfig.devServer);
 
   const port = argv.port || wpConfig.devServer.port;
-  server.listen(port);
+  const server = app.listen(port, null, () => {
+    const { address, family } = server.address();
+    const host = /6/.test(family) ? `[${address}]` : address;
+    const url = `http://${host}:${port}/`;
+    console.log(chalk.blue(`Server listening at ${url}`));
+
+    const open = argv.open || wpConfig.devServer.open;
+    if (open) {
+      const opn = require('opn');
+
+      if (typeof open === 'string') {
+        opn(url, { app: open });
+      } else {
+        opn(url);
+      }
+    }
+  });
 
   break;
 }

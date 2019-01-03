@@ -42,9 +42,9 @@ module.exports = function webpackConfig(options) {
               modules: false,
             },
           },
-          // {
-          //   loader: 'postcss-loader',
-          // },
+          {
+            loader: 'postcss-loader',
+          },
         ],
       },
       {
@@ -61,13 +61,14 @@ module.exports = function webpackConfig(options) {
                 : '_[hash:base64:5]',
             },
           },
-          // {
-          //   loader: 'postcss-loader',
-          // },
+          {
+            loader: 'postcss-loader',
+          },
         ],
       },
       {
-        test: /\.(js|ts)$/,
+        test: /\.(jsx?|tsx?)$/,
+        exclude: /node_modules/,
         use: 'babel-loader',
       },
       {
@@ -89,6 +90,10 @@ module.exports = function webpackConfig(options) {
     ],
   };
 
+  cfg.resolve = {
+    extensions: ['.js', '.json', '.jsx', '.ts', '.tsx'],
+  };
+
   cfg.target = 'web';
 
   cfg.stats = {
@@ -102,6 +107,7 @@ module.exports = function webpackConfig(options) {
   cfg.devServer = {
     contentBase: opts.outputPath,
     compress: false,
+    open: false,
     port: 1234,
     stats: {
       all: false,
