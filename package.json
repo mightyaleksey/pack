@@ -19,6 +19,7 @@
     "chalk": "^2.4.1",
     "css-loader": "^2.1.0",
     "fast-glob": "^2.2.4",
+    "file-loader": "^3.0.1",
     "mini-css-extract-plugin": "^0.5.0",
     "minimist": "^1.2.0",
     "mkdirp": "^0.5.1",
