@@ -41,6 +41,7 @@ const BUILD_USAGE = `
 
     -h, --help         print usage
     -p, --production
+    -t, --template
 `;
 
 const SERVE_USAGE = `
@@ -48,9 +49,10 @@ const SERVE_USAGE = `
 
   Options:
 
-    -h, --help   print usage
+    -h, --help       print usage
     -o, --open
     -p, --port
+    -t, --template
 `;
 
 const minimist = require('minimist');
@@ -60,12 +62,19 @@ const argv = minimist(process.argv.slice(2), {
     open: 'o',
     port: 'p',
     production: 'p',
+    template: 't',
     version: 'v',
   },
   boolean: [
     'help',
   ],
 });
+
+// switch (argv._[0]) {
+// case 'init':
+// case 'build':
+// case 'serve':
+// }
 
 switch (argv._[0]) {
 case 'init': {
@@ -149,10 +158,13 @@ case 'build': {
   const webpack = require('webpack');
   const createConfig = require('./webpack.config');
 
+  const template = argv.template ? path.resolve(argv.template) : null;
+
   const cfg = {
     entry: {
       app: argv._.slice(1).map(f => path.resolve(f)),
     },
+    template,
     watch: false,
   };
 
@@ -161,6 +173,7 @@ case 'build': {
   if (module.parent) return void (module.exports = {
     args: argv,
     config: cfg,
+    template,
     webpackConfig: wpConfig,
   });
 
@@ -201,10 +214,13 @@ case 'serve': {
   const webpack = require('webpack');
   const createConfig = require('./webpack.config');
 
+  const template = argv.template ? path.resolve(argv.template) : null;
+
   const cfg = {
     entry: {
       app: argv._.slice(1).map(f => path.resolve(f)),
     },
+    template,
     watch: false,
   };
 
@@ -215,6 +231,7 @@ case 'serve': {
   if (module.parent) return void (module.exports = {
     args: argv,
     config: cfg,
+    template,
     webpackConfig: wpConfig,
   });
 

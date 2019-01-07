@@ -1,3 +1,4 @@
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const path = require('path');
 
@@ -10,6 +11,8 @@ module.exports = function webpackConfig(options) {
 
     outputPath: path.resolve(rootDir, 'dist'),
     outputPublicPath: '/',
+
+    template: null,
 
     watch: false,
   }, options);
@@ -146,6 +149,12 @@ module.exports = function webpackConfig(options) {
   };
 
   cfg.plugins = [
+    new HtmlWebpackPlugin({
+      template: opts.template !== null
+        ? opts.template
+        : path.resolve(__dirname, 'index.pug'),
+      title: '',
+    }),
     new MiniCssExtractPlugin({
       filename: isProduction ? '[name][contenthash].css' : '[name].css',
     }),
